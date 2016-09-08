@@ -1,0 +1,6 @@
+Feature	Start	Stop
+peptidyl isometase	22464	23285
+methyltransferase	23318	24345
+methyl coenzyme M reductase	24390	25370
+Methionine gamma-lyase	25404	26561
+Radical SAM domain protein	26616	27548
