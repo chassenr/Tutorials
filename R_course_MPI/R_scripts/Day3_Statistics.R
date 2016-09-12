@@ -373,6 +373,42 @@ showvarparts(2) # show venn diagram
 plot(OTU.varpart) # plot contribution to explaining variation
 
 
+### SIMPER ####
+# to find out which taxa are responsible for the differences between seep influence
+# maybe not the best method for this
+# see ?simper
+
+OTU.simper <- simper(
+  t(relOTU),
+  ENV.all$seep.influence
+)
+
+# inspect simper output
+str(OTU.simper)
+# there are 3 tables for each pairwise comparison
+
+# write simper output to file
+# one file for each comparison
+# only look at OTUs contributing at least to 70% of the differences between groups
+for(i in 1:length(OTU.simper)) {
+  write.table(
+    ,
+    paste(),
+    sep = "\t",
+    quote = F
+  )
+}
+
+
+### Differential OTU abundance ####
+# use variance-stabilizing transformation
+# run multiple univariate tests (one for each OTU)
+# correct p-values
+# using ALDEx2
+
+require(ALDEx2)
+
+
 ### Mantel test ####
 # compare the OTU table of bacterial and archaeal communities at the CO2 vents
 # based on Bray-Curtis dissimilarity

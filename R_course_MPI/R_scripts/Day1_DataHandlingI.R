@@ -17,6 +17,9 @@ c <- a == "A" # logical
 # data type conversions
 # factor to numeric
 n <- as.numeric(b)
+as.numeric(as.factor(a))
+d <- rep(c("1", "B"), 5) # character
+as.numeric(d)
 
 # numeric to factor
 m <- as.factor(x)
@@ -25,6 +28,8 @@ m <- as.factor(x)
 as.character(b)
 
 # factor with numeric levels to numeric
+m <- as.factor(c(1,1,3,7,3,8,9))
+as.numeric(m)
 as.numeric(as.character(m))
 
 
@@ -36,12 +41,14 @@ X <- matrix(
   ncol = 5, # how many column
   byrow = F # fill by rows  (TRUE) or fill by column
 )
+X
 X1 <- matrix(
   data = 1:50,
   nrow = 10, 
   ncol = 5, 
   byrow = T
 )
+X1
 
 A <- matrix(
   rep(c("A","B"), 25), 
@@ -49,12 +56,18 @@ A <- matrix(
   ncol = 5, 
   byrow = F
 )
+A
 A1 <- matrix(
   rep(c("A","B"), 25), 
   nrow = 10, 
   ncol = 5, 
   byrow = T
 )
+A1
+
+# convert to vector
+c(X)
+
 
 # data frames: concatonated vectors
 # different data types
@@ -68,6 +81,7 @@ str(tDF)
 # result is a character matrix, since difference data types in one column are not allowed
 # everything is converted to character
 
+
 # lists: vectors consisting of R objects, including other lists
 L <- list(x, y, a, b, c, X, A, DF)
 
@@ -78,6 +92,11 @@ L <- list(x, y, a, b, c, X, A, DF)
 
 # vectors and lists
 names(x) <- c("S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10")
+str(x)
+# remove names
+names(x) <- NULL
+
+# name elements of a list
 names(L) <- c("int", "num", "chr", "fac", "log", "mat.int", "mat.chr", "df")
 
 # matrices and data frames
@@ -97,11 +116,12 @@ colnames(DF) # already exist, based on names of input vector
 # select 3rd element in vector
 x[3]
 # select 3rd to 5th elements in vector
-x[3:5]
+x[c3:5]
 # select 2st, 3rd, 7th element in vector
 x[c(2, 3, 7)]
 # select everything except 3rd element
 x[-3]
+x[-c(3:5)]
 # selection based on attributes
 x[c("S3", "S5")]
 
@@ -111,7 +131,7 @@ X[1:3, ]
 # select first 3 column
 X[, 1:3]
 # select second element in 3rd row
-X[3, 2]
+X.sub <- X[3, 2]
 # selection based on attributes
 X["S1", c("V3", "V5")]
 DF["S1", c("x", "c")]
@@ -121,12 +141,20 @@ DF[, c("c", "a", "x")]
 
 # using logical operators
 DF[DF$y > 3, ]
+# same as line143, selection of column y with []
+DF[DF[, "y"] > 3, ]
+# just y larger than 3
+DF$y[DF$y > 3]
+
+# match of character
 DF[DF$a == "A", ]
+
 # other logical operators are:
 # != does not equal
 # >= more or equal than
 # | or
 # & and
+DF[DF$y > 3 | DF$a == "A", ]
 
 # use dollar '$' to extract columns in data frame by column name
 DF$x
@@ -137,14 +165,16 @@ DF[DF$c, ]
 # navigating lists
 # return a subset of the list: single square brackets
 # the output will still be a list
-L[1]
+L.sub <- L[1]
 str(L[1])
 # return an element of a list: '$' or double square brackets
 # the output will have the object and data type of the element of the list
-L$int
+L.int <- L$int
 str(L$int)
 str(L[[1]])
 str(x)
+
+L.df <- L$df
 
 
 ### R errors ####
@@ -159,6 +189,7 @@ DF["S1", c("int", "log")]
 # Error in `[.data.frame`(DF, "S1", c("int", "log")) : undefined columns selected
 # there are no column names "int" and "log" in DF
 DF["S1", c("x", "c")]
+
 
 # calculate percentages over columns of numeric data frame
 DF.num <- data.frame(X)
@@ -206,8 +237,11 @@ b1
 
 ### Let's have a look at some 'real' data ####
 
+# which directory are you working in
+getwd()
+
 # tell R where to find the files
-setwd("E:/PhD/courses/R_course_MPI/ExampleData/")
+setwd("C:/Users/User/Documents/githubRepos/Tutorials/trunk/R_course_MPI/Example_data")
 
 # clear workspace
 rm(list = ls())
@@ -221,11 +255,12 @@ rm(list = ls())
 
 # bacterial community data
 OTU <- read.table(
-  "OTU_table.txt", 
+  "OTU_table.txt", # file name
   h = T, # first line contains column names
   sep = "\t", # values separated by tabstops
   row.names = 1 # first row contains row names, i.e. OTU names
 )
+head(OTU)
 
 # bottom water data (carbonate chemistry, nutrients)
 ENV <- read.table(
@@ -244,6 +279,7 @@ TAX <- read.table(
   comment.char = "", # to account for weird symbols (#) in taxon names
   quote = "" # to account for weird symbols (", ') in taxon names
 )
+head(TAX)
 
 # for more info, use help option
 ?read.table
@@ -275,12 +311,15 @@ all.equal(
 # get some summary information for the environmental parameters
 # for one variable
 summary(ENV$pH)
+table(ENV$seep.influence)
+
 # for one variable but for separate conditions
 by( # calculate per grouping factor
   ENV$pH, # vector
   ENV$seep.influence, # grouping variable
   summary # function to be applied
 )
+
 # for several variable
 apply( # apply to several (in this case) columns
   ENV[, 4:ncol(ENV)], # for all numeric variables in ENV
@@ -301,7 +340,9 @@ plot(ENV$pH ~ ENV$SiO4) # use formula y ~ x
 # create color vector for pH categories
 ENV$seep.color <- ENV$seep.influence
 # renaming factor levels automatically changes values
+levels(ENV$seep.influence)
 levels(ENV$seep.color) <- c("orange", "red", "darkblue") 
+levels(ENV$seep.color)
 # color argument in plot expects character input
 ENV$seep.color <- as.character(ENV$seep.color)
 # repeat scatter plot
@@ -415,6 +456,7 @@ OTU.rel <- prop.table(as.matrix(OTU), 2) * 100
 OTU.classified <- OTU[-grep("unclassified", TAX$genus), ]
 TAX.classified <- TAX[rownames(OTU.classified), ]
 head(TAX.classified)
+head(OTU.classified)
 
 # how many sequences were retained [%]?
 colSums(OTU.classified)/nSeq * 100
