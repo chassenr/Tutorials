@@ -8,7 +8,7 @@
 
 
 # let's go back to the vent data set
-setwd("E:/PhD/courses/R_course_MPI/ExampleData/")
+setwd("C:/Users/User/Documents/githubRepos/Tutorials/trunk/R_course_MPI/Example_data")
 
 # load workspace with vent data
 # load("Vent.Rdata")
@@ -305,7 +305,7 @@ OTU.anosim.posthoc <- p.adjust(
     anosim(Y[X != "medium", ], droplevels(X[X != "medium"]))$signif, # comparison reference - high
     anosim(Y[X != "reference", ], droplevels(X[X != "reference"]))$signif # comparison medium - high
   ),
-  method = "fdr", # false discovery rate, other options: e.g. Bonferroni
+  method = "fdr" # false discovery rate, other options: e.g. Bonferroni
 )
 
 
@@ -379,21 +379,54 @@ plot(OTU.varpart) # plot contribution to explaining variation
 # see ?simper
 
 OTU.simper <- simper(
-  t(relOTU),
-  ENV.all$seep.influence
+  t(OTU.rel), # community matrix (samples are rows)
+  ENV.all$seep.influence, # grouping factor
+  permutations = how() # free permutations
 )
+
+# what is the output of simper
+?simper
 
 # inspect simper output
 str(OTU.simper)
-# there are 3 tables for each pairwise comparison
+# there are 3 lists, one for each pairwise comparison
+# order of OTU names in each of the output lists
+all.equal(rownames(OTU.rel), OTU.simper$reference_medium$species)
+all.equal(rownames(OTU.rel), OTU.simper$reference_high$species)
+all.equal(rownames(OTU.rel), OTU.simper$medium_high$species)
+
+# which 10 OTU contribute most and how much to differences
+OTU.simper.10 <- lapply( # apply to each element in simper output
+  OTU.simper, # simper output
+  function(x) {
+    data.frame( # create data frame consisting of
+      otu = x$species, # OTU names
+      contribution = x$average # average contribution
+    )[x$ord[1:10], ] # only the 10 OTU which contribute most to the differences, i.e. the first ten when ordered by cumsum
+  }
+)
+
+# creating simper output tables
+# remove $overall (only 1 element, not of the same length as other vectors in list)
+OTU.simper.df <- lapply(
+  OTU.simper,
+  function(x) {
+    do.call(data.frame,
+            x[-3])
+  }
+)
+str(OTU.simper.df)
 
 # write simper output to file
 # one file for each comparison
 # only look at OTUs contributing at least to 70% of the differences between groups
-for(i in 1:length(OTU.simper)) {
+for(i in 1:length(OTU.simper.df)) {
   write.table(
-    ,
-    paste(),
+    OTU.simper.df[[i]],
+    paste("SIMPER", 
+          names(OTU.simper.df)[i], 
+          ".txt", 
+          sep = ""),
     sep = "\t",
     quote = F
   )
@@ -406,7 +439,33 @@ for(i in 1:length(OTU.simper)) {
 # correct p-values
 # using ALDEx2
 
+# R package on bioconductor
+source("https://bioconductor.org/biocLite.R")
+biocLite("ALDEx2")
+
+# load R package
 require(ALDEx2)
+
+# transforming OTU sequence counts
+OTU.aldex.clr <- aldex.clr(OTU, mc.samples = 2)
+
+# calculating GLMs
+OTU.aldex.glm <- aldex.glm(OTU.aldex.clr, ENV.all$seep.influence)
+
+# inspect output
+# only those OTU which are:
+# significant based on kruskal wallis
+# significant based on adjusted glm
+# comprise at least 1% in one sample
+OTU.aldex.sign <- OTU.aldex.glm[OTU.aldex.glm$kw.ep < 0.05 & 
+                                  OTU.aldex.glm$glm.eBH < 0.05 &
+                                  apply(
+                                    OTU.rel,
+                                    1, 
+                                    function(x) {
+                                      max(x) > 1
+                                    }
+                                  ), ]
 
 
 ### Mantel test ####

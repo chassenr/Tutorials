@@ -5,7 +5,7 @@
 # more advaced example for data manipulation
 
 # set working directory
-setwd("E:/PhD/courses/R_course_MPI/ExampleData/")
+setwd("C:/Users/User/Documents/githubRepos/Tutorials/trunk/R_course_MPI/Example_data")
 
 # load workspace with vent data
 # load("Vent.Rdata")
