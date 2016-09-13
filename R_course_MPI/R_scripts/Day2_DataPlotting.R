@@ -3,7 +3,7 @@
 #########################################################
 
 # set working directory
-setwd("E:/PhD/courses/R_course_MPI/ExampleData/")
+setwd("C:/Users/User/Documents/githubRepos/Tutorials/trunk/R_course_MPI/Example_data")
 
 # load workspace with vent data
 # load("Vent.Rdata")
@@ -44,7 +44,8 @@ pH.plot$seep.color <- as.character(pH.plot$seep.color)
 
 # open separate graphics device
 windows(width = 8, height = 6) # width and height of graphics device in inches
-# on Mac and Linux: use quartz()
+# on Mac: use quartz()
+# on linux: X11()
 
 # set margins of plot
 par(mar = c(5, 5, 2, 2))
@@ -187,6 +188,11 @@ maxOTU <- max(
   colSums(decostand(OTU, # transform OTU table
                     method = "pa")) # to presence/absence
 )
+
+# without vegan
+OTU01 <- OTU
+OTU01[OTU01 > 0] <- 1
+maxOTU <- max(colSums(OTU01))
 
 # open new graphics device
 windows(width = 8, height = 6)
@@ -356,7 +362,7 @@ heatmap.2(
   cexRow = 0.8, # size of row labels
   RowSideColors = as.character(row.color), # bar with colors for taxonomy
   labRow = TAX.abund$class, # use class-level taxonomy as row labels
-  keysize=1.3, # size of color legend
+  keysize = 1.3, # size of color legend
   breaks = seq(-1, 1, 0.1), # define breaks for color palette used in heatmap
   dendrogram = "row" # only draw row dendrogram
 )
@@ -424,6 +430,7 @@ OTU.network <- data.frame(
   OTU.abund.sorted
 )
 OTU.network.molten <- melt(OTU.network) 
+head(OTU.network.molten)
 OTU.network.molten <- OTU.network.molten[OTU.network.molten$value > 0, ]
 
 # create network graph
@@ -454,7 +461,7 @@ network.vertex <- network.vertex[match(
 V(network.graph)$size <- c(
   rescale(network.vertex$sum.abund, # first OTUs
           to = c(1, 25)), 
-  nchar(colnames(OTU.abund.sorted)) * 2.4 # then sample names (label size depending on length of sample name)
+  nchar(colnames(OTU.abund.sorted)) * 3 # then sample names (label size depending on length of sample name)
 )
 # vertical extension of verteces
 V(network.graph)$size2 <- c(
@@ -504,6 +511,23 @@ plot.igraph(
   layout = layout.fruchterman.reingold(network.graph, # algorithm to create network topology
                                        weights = E(network.graph)$weights) # OTU abundance used as weights 
 )
+
+# to save the layout (coordinates of the nodes)
+# net.topology <- layout.fruchterman.reingold(network.graph, weights = E(network.graph)$weights)
+# 
+# plot.igraph(
+#   network.graph, # network graph
+#   vertex.size = V(network.graph)$size, # horizontal extension of verteces
+#   vertex.size2 = V(network.graph)$size2, # vertical extension of verteces
+#   vertex.label = V(network.graph)$label, # vertex name
+#   vertex.label.cex = 0.7, # size of vertex label
+#   vertex.label.color = "black", # color of vertex label
+#   vertex.label.family =  "sans", # font family
+#   vertex.shape = V(network.graph)$shape, # vertex shape
+#   edge.color = "lightgrey", # color of edges
+#   edge.width = 0.5, # line width of edges
+#   layout = net.topology
+# )
 
 # call new plot to add legend
 plot.new()
@@ -600,7 +624,7 @@ require(sp)
 require(maps)
 
 # download coastlines/country borders at: http://www.gadm.org/country
-pngAdm0 <- readRDS("E:/PhD/courses/R_course_MPI/ExampleData/PNG_adm0.rds")
+pngAdm0 <- readRDS("../Example_data/PNG_adm0.rds")
 
 # open new graphics device
 windows(height = 12, width = 7.5)
@@ -626,7 +650,7 @@ axis(
   mgp = c(1,-1.5,0), # margin lines for the axis title, tick labels and axis line, plot ticks inside plot
   cex.axis = 0.8, # size of tick labels
   at = seq(149.5, 151.5, 0.5), # position of tick labels
-  labels = paste(seq(149.5, 151.5, 0.5), "°", sep = ""), # tick labels
+  labels = paste(seq(149.5, 151.5, 0.5), "°", sep = "") # tick labels
 )
 axis(
   2, 
