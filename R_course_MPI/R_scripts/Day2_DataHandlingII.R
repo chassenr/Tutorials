@@ -39,6 +39,7 @@ PROFILE <- read.table(
   h = T, 
   sep = "\t"
 )
+head(PROFILE)
 
 # the profile data consists of several hundreds of data values,
 # measuring several parameters every 100 µm in the sediment
@@ -61,11 +62,14 @@ PROFILE$depth <- ordered(
   PROFILE$depth,
   levels = c("water","2","4","6","8","10")
 )
+levels(PROFILE$depth)
+str(PROFILE)
 
 # reshape data
 PROFILE.median <- cast(
   PROFILE, # molten data frame (long format)
   site + depth ~ measurement, # formula (similar to rows and columns selection for pivot table in excel)
+  value = "value",
   median, na.rm = T # function to aggregate data (remove NAs before calculation)
 )
 
@@ -79,7 +83,12 @@ PROFILE.median.2cm <- PROFILE.median[PROFILE.median$depth == "2", ] # "2" is ref
 # the output is a logical vector the length of the first argument (ENV.mean$site)
 # sum() can be used to count the occurrences of TRUE in a logical vector
 sum(ENV.mean$site %in% PROFILE.median.2cm$site)
+sum(PROFILE.median.2cm$site %in% ENV.mean$site)
 # only 8 sites have profile data available
+
+# use in to select rows
+# vector before %in% needs to correspond to data that will be subset
+ENV.mean[ENV.mean$site %in% PROFILE.median.2cm$site, ]
 
 # we can combine both tables into one
 
@@ -113,6 +122,7 @@ all.equal(rownames(ENV.all), colnames(OTU))
 # the output will automatically be in the order of the names used for the selection
 OTU.rel <- OTU.rel[, rownames(ENV.all)]
 OTU.classified <- OTU.classified[, colnames(OTU)]
+all.equal(colnames(OTU), colnames(OTU.rel))
 
 
 ### for loops ####
@@ -151,9 +161,10 @@ all.equal(colSums(OTU), colSums(TAX.pooled$class))
 
 # option 1: also using a for loop
 TAX.pooled.rel <- vector(mode = "list", length = 5)
-names(TAX.pooled) <- names(TAX.pooled)
+names(TAX.pooled.rel) <- names(TAX.pooled)
+str(TAX.pooled.rel)
 for (i in 1:length(TAX.pooled)) {
-  TAX.pooled[[i]] <- prop.table(as.matrix(TAX.pooled[[i]]), 2) * 100
+  TAX.pooled.rel[[i]] <- prop.table(as.matrix(TAX.pooled[[i]]), 2) * 100
 }
 
 # option 2: using lappy
@@ -163,6 +174,7 @@ TAX.pooled.rel <- lapply( # 'list apply'
     prop.table(as.matrix(x), 2) * 100 # same function as above, x is a placeholder for each element in TAX.pooled
   }
 )
+str(TAX.pooled.rel)
 
 # apply, sapply, lapply are very handy to apply the same function to...
 # ... all rows (margin = 1) or column (margin = 2) of a 2-dimensional object (apply)
@@ -185,6 +197,7 @@ ALIGN <- read.table(
   comment.char = "", 
   quote = ""
 )
+head(ALIGN)
 
 # check that rownames are in the same order as in OTU
 all.equal(rownames(OTU), rownames(ALIGN))
@@ -196,6 +209,7 @@ PATH.split <- strsplit(
   split = ";", # separator (can also be more than one character)
   fixed = T # don't use regular expressions
 )
+head(PATH.split)
 
 # the output is a list with a separate character vector for each taxonomic path
 # let's select the last element of each taxonomic path
