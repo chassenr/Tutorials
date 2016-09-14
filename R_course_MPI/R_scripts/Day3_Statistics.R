@@ -25,6 +25,8 @@ setwd("C:/Users/User/Documents/githubRepos/Tutorials/trunk/R_course_MPI/Example_
 Y <- ENV.all$pH[ENV.all$seep.influence != "high"]
 X <- droplevels(ENV.all$seep.influence[ENV.all$seep.influence != "high"])
 
+table(X)
+
 # look at data
 boxplot(Y ~ X)
 by(Y, X, summary)
@@ -32,6 +34,7 @@ by(Y, X, summary)
 # check assumptions
 # normality
 by(Y, X, shapiro.test)
+by(Y, X, hist)
 # homoscedacity
 require(car)
 leveneTest(Y, group = X)
@@ -59,7 +62,7 @@ pH.wilcox <- wilcox.test(Y ~ X)
 Y <- ENV.all$pH
 X <- ENV.all$seep.influence
 
-# oav
+# aov
 pH.aov <- aov(Y ~ X)
 # get p-value
 summary(pH.aov)
@@ -72,6 +75,9 @@ anova(pH.lm)
 # check assumptions
 plot(pH.aov)
 # that doesn't really look good....
+
+# just to show you posthoc tests
+TukeyHSD(pH.aov)
 
 
 # permutation test ###
@@ -109,7 +115,7 @@ abline(v = F.X)
 F.X.dist <- df( # calculate density/probability for the specified quantiles
   seq(0, 10, length = 100), # quantiles (x-values in plot)
   df1 = 2, # numerator df
-  df2 = 9 # denominator df
+  df2 = 10 # denominator df
 )
 lines( # add lines to plot
   seq(0, 10, length = 100), 
@@ -136,7 +142,7 @@ pH.kuskal.posthoc <- p.adjust( # adjust p values
     wilcox.test(Y[X != "medium"] ~ droplevels(X[X != "medium"]))$p.value, # comparison reference - high
     wilcox.test(Y[X != "reference"] ~ droplevels(X[X != "reference"]))$p.value # comparison medium - high
   ),
-  method = "fdr", # false discovery rate, other options: e.g. Bonferroni
+  method = "fdr" # false discovery rate, other options: e.g. Bonferroni
 )
 
 
@@ -273,6 +279,13 @@ box("plot")
 
 # hulls by seep influence
 ordihull(OTU.nmds, groups = ENV.all$seep.influence)
+
+# hulls by similarity
+plot(hclust(vegdist(t(OTU.rel))))
+rect.hclust(hclust(vegdist(t(OTU.rel))), h = 0.8)
+groups80 <- cutree(hclust(vegdist(t(OTU.rel))), h = 0.8)
+
+ordihull(OTU.nmds, groups = groups80)
 
 # sites
 points(
