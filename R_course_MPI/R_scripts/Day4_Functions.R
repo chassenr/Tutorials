@@ -12,12 +12,19 @@
 # you have already written functions
 # in every instance of apply(x, margin, FUN) you specified a function
 
+# annotation:
+function.name <- function(x) {
+  # what you want to do with x
+}
+# usage
+function.name(x = yourData)
+
 # Now we will look at:
 # 1) the plotting script to produce stacked bar plots with the taxonomic composition
 # 2) a post-hoc function for anosim
 # 3) plotting gene annotation output
 
-setwd("E:/PhD/courses/R_course_MPI/ExampleData/")
+setwd("C:/Users/User/Documents/githubRepos/Tutorials/trunk/R_course_MPI/Example_data")
 # load("Vent.Rdata")
 
 
@@ -27,10 +34,10 @@ setwd("E:/PhD/courses/R_course_MPI/ExampleData/")
 relData <- TAX.pooled.rel$class
 
 # we only want to plot the 10 most abundant classes per sample
-abund = 10
+abund <- 10
 
 # specify color palette
-colorPalette = c("violet", "purple", "blue", "white", "darkgreen", "yellow", "red", "darkred")
+colorPalette <- c("violet", "purple", "blue", "white", "darkgreen", "yellow", "red", "darkred")
 
 # extract names of the 10 most abundant taxa per sample
 abund_names <- c()
@@ -93,7 +100,8 @@ legend(
 # define function:
 PlotAbund <- function(relData, # list arguments to function to be provided by user
                       abund, 
-                      colorPalette = c("violet", "purple", "blue", "white", "darkgreen", "yellow", "red", "darkred")) { # include default
+                      colorPalette = c("violet", "purple", "blue", "white", "darkgreen", "yellow", "red", "darkred") # include default
+                      ) { 
   # copy paste previous code here:
   # extract names of the 10 most abundant taxa per sample
   abund_names <- c()
@@ -147,12 +155,12 @@ PlotAbund <- function(relData, # list arguments to function to be provided by us
 
 # if you run that function script, PlotAbund will be listed as function in your environment
 # if you save the function script in a separate R file, the function can be imported with:
-source("../Day4/PlotAbund.R")
+source("PlotAbund.R")
 
 # to run the function you don't have to rename your objects to match the function arguments
 # the function can be run several times, e.g. for each taxonomic level
 # like any other R function provided by an R package you can run:
-PlotAbund(TAX.pooled.rel$phylum, 10)
+PlotAbund(relData = TAX.pooled.rel$phylum, abund = 10, colorPalette = c("white", "red", "blue"))
 PlotAbund(TAX.pooled.rel$class, 10)
 PlotAbund(TAX.pooled.rel$order, 10)
 PlotAbund(TAX.pooled.rel$family, 7)
@@ -187,7 +195,7 @@ OTU.anosim.posthoc <- p.adjust(
 ANOSIMposthoc <- function(M, # community data (samples in rows)
                           E, # explanatory variable (factor)
                           distance = "bray", # dissimilarity measure (default: Bray-Curtis)
-                          padj="fdr") { # p-value adjustment method (default: fdr)
+                          padj = "fdr") { # p-value adjustment method (default: fdr)
   # remove empty levels from explanatory variable
   E <- droplevels(E) 
   
@@ -252,7 +260,7 @@ ANOSIMposthoc <- function(M, # community data (samples in rows)
 }
 
 # save as separate script and source
-source("../Day4/AnosimPosthoc.R")
+source("AnosimPosthoc.R")
 require(vegan)
 
 # run with bacterial and archaeal OTU matrices
@@ -350,7 +358,7 @@ horiz.arrow <- function(start, # start base position
 }
 
 # if saved as separate R script
-source("../Day4/HorizArrow.R")
+source("HorizArrow.R")
 
 plot(
   0, 0,
@@ -370,12 +378,12 @@ axis(
 )
 
 for(i in 1:nrow(gene)) {
-  horiz.arrow(start = gene$Start[i],
-              end = gene$Stop[i],
+  horiz.arrow(start = gene$Stop[i],
+              end = gene$Start[i],
               width = 0.1,
               head = 100,
-              horiz = 0.2,
-              rev = F,
+              horiz = 0.5,
+              rev = T,
               annotation = gene$Feature[i])
 }
 
