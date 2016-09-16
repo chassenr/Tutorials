@@ -3,6 +3,7 @@
 
 library(data.table)  
 
+
 DF = data.frame(x=rep(c("a","b","c"),each=3), y=c(1,3,6), v=1:9, stringsAsFactors = F)
 DT = data.table(x=rep(c("a","b","c"),each=3), y=c(1,3,6), v=1:9)
 
@@ -22,7 +23,8 @@ tables()
 DT[2]                      # 2nd row
 DT[,v]                     # v column (as vector)
 DT[,list(v)]               # v column (as data.table)
-DT[2:3,sum(v)]             # sum(v) over rows 2 and 3
+
+DT[2:3, sum(v)]             # sum(v) over rows 2 and 3
 DT[2:5,cat(v,"\n")]        # just for j's side effect
 DT[c(FALSE,TRUE)]          # even rows (usual recycling)
 
@@ -31,15 +33,15 @@ colNum = 2
 DT[,colNum,with=FALSE]     # same
 
 setkey(DT,x)               # set a 1-column key. No quotes, for convenience.
-setkeyv(DT,"x")            # same (v in setkeyv stands for vector)
+tsetkeyv(DT,"x")            # same (v in setkeyv stands for vector)
 v="x"
 setkeyv(DT,v)              # same
 # key(DT)<-"x"             # copies whole table, please use set* functions instead
 
 DT["a"]                    # binary search (fast)
-DT[x=="a"]                 # same; i.e. binary search (fast)
+DT[x == "a"]                 # same; i.e. binary search (fast)
 
-DT[,sum(v),by=x]           # keyed by
+DT[,sum(v),by=x]# keyed by
 DT[,sum(v),by=key(DT)]     # same
 DT[,sum(v),by=y]           # ad hoc by
 
@@ -49,6 +51,7 @@ DT[c("a","b"),sum(v),by=.EACHI]   # j for two groups, for each i specified befor
 # The world of databasing! Joins etc..
 
 X = data.table(c("b","c"),foo=c(4,2))
+setkey(X, V1)
 X
 setkey(X, V1)
 DT
@@ -71,8 +74,8 @@ DT[list("a")]              # same
 
 DT[.("a",3)]               # join to 2 columns - x = a and y = 3
 DT[.("a",3:6)]             # join 4 rows (2 missing)
-DT[.("a",3:6),nomatch=0]   # remove missing
-DT[.("a",3:6),roll=TRUE]   # rolling join (locf)
+DT[.("a",3:6), nomatch = 0]   # remove missing
+DT[.("a",3:6), roll = TRUE]   # rolling join (locf)
 
 DT[,sum(v),by=.(y%%2)]     # by expression, here modulo (remainder)
 DT[,.SD[2],by=x]           # 2nd row of each group, .SD is a sort 
@@ -83,9 +86,9 @@ DT[,lapply(.SD,sum),by=x]  # apply through columns by group
 
 # You can really get specific...
 
-DT[,list(MySum=sum(v),
-         MyMin=min(v),
-         MyMax=max(v)),
+DT[,list(MySum = sum(v),
+         MyMin = min(v),
+         MyMax = max(v)),
    by=.(x)] 
 
 DT[,list(MySum=sum(v),
@@ -119,8 +122,8 @@ DT[!.("a")]                # not join
 DT[!"a"]                   # same
 DT[!2:4]                   # all rows other than 2:4
 
-DT[x!="b" | y!=3]          # not yet optimized, currently vector scans
-DT[!.("b",3)]              # same result but much faster
+DT[x != "b" | y != 3]       # not yet optimized, currently vector scans
+DT[!.("b", 3)]              # same result but much faster
 
 
 # new feature: 'on' argument, from v1.9.6+
@@ -177,6 +180,7 @@ DT["b",mult="last"]
 DT["b"]
 
 grpsize = ceiling(1e7/26^2)   # 10 million rows, 676 groups
+
 tt=system.time( DF <- data.frame(
   x=rep(LETTERS,each=26*grpsize),
   y=rep(letters,each=grpsize),
@@ -190,7 +194,9 @@ head(DF,3)
 tail(DF,3)
 dim(DF)
 
-tt <- system.time(ans1 <- DF[DF$x=="R" & DF$y=="h",])   # 'vector scan'
+tt <- system.time(
+  ans1 <- DF[DF$x=="R" & DF$y=="h",]
+  )   # 'vector scan'
 
 tt
 
@@ -203,8 +209,13 @@ system.time(setkey(DT,x,y))  # one-off cost, usually
 
 
 # use our keys to do the search...
+<<<<<<< HEAD
 ss <- system.time(ans2 <- DT[list("R","h")])   # binary search
 ss
+=======
+ss <- system.time(ans2 <- DT[.("R","h")])   # binary search
+
+>>>>>>> 1314689f746368f7c0791ac5e0992240a8d87843
 head(ans2,3)
 dim(ans2)
 identical(ans1$v, ans2$v)
@@ -230,6 +241,7 @@ DT[,sum(v),by=x]
 
 # compare performance...
 ttt=system.time(tt <- tapply(DT$v,DT$x,sum)); ttt
+
 tsss=system.time(ss <- DT[,sum(v),by=x]); tsss
 
 head(tt)
@@ -267,11 +279,16 @@ dt <- data.table(
   )
 
 # multiple value.var
-dcast(dt, x + y ~ z, fun=sum, value.var=c("d1","d2"))
+dcast.data.table(dt, x + y ~ z, fun=sum, value.var=c("d1","d2"))
+dcast.data.table(dt, x ~ z, fun=sum, value.var=c("d1"))
+
+
 # multiple fun.aggregate
 dcast(dt, x + y ~ z, fun=list(sum, mean), value.var="d1")
+
 # multiple fun.agg and value.var (all combinations)
 dcast(dt, x + y ~ z, fun=list(sum, mean), value.var=c("d1", "d2"))
+
 # multiple fun.agg and value.var (one-to-one)
 dcast(dt, x + y ~ z, fun=list(sum, mean), value.var=list("d1", "d2"))
 
