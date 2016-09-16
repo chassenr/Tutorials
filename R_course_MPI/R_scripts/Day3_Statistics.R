@@ -178,6 +178,25 @@ plot(pH.lmer)
 plot(residuals(pH.lmer) ~ fitted(pH.lmer))
 # looks kind of ok...
 
+# WARNING ####
+# analysis of multifactorial designs (i.e. more than one X)
+# when using anova() the order of explanatory variables in the model will influence
+# the outcome of the statistical test
+# to avoid this, the function Anova() of the car package offers an alternative
+
+lmer.input <- data.frame(
+  Y = ENV$pH, 
+  X.1 = ENV$seep.influence, 
+  X.2 = ENV$SiO4,
+  Z = ENV$site
+)
+pH.lmer <- lme(Y ~ X.1 + X.2, data = lmer.input, random = ~ 1|Z)
+require(car)
+Anova(pH.lmer)
+# I hope I got this right:
+# if the Chi-square test is significant the factor that was tested
+# improved the model fit
+
 
 ### PCA plot ####
 # unconstrained ordination
