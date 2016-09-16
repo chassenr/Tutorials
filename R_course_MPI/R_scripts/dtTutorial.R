@@ -320,4 +320,3 @@ melt(DT, id=1:2, measure=patterns("f_", "d_"), value.factor=TRUE, na.rm=TRUE)
 
 # return 'NA' for missing columns, 'na.rm=TRUE' ignored due to list column
 melt(DT, id=1:2, measure=patterns("l_", "c_"), na.rm=TRUE)
-
