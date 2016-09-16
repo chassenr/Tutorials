@@ -28,10 +28,10 @@ levels(M96$STATION.color) <- rainbow(length(levels(M96$STATION.color)))
 M96$STATION.color <- as.character(M96$STATION.color)
 
 # extract numerical variables to be used for cluster diagram
-M96.num <- M96[, c(4, 6, 18:21)]
+M96.num <- M96[, c(4, 6, 18:21)] # longitude, depth, nutrients
 str(M96.num)
 
-# z-transform M96.num
+# z-score transform M96.num
 M96.num.z <- scale(M96.num)
 
 # calculate distance and cluster diagram
@@ -50,7 +50,7 @@ windows(width = 15, height = 10)
 par(
   mar = c(5, 2, 2, 0),
   mfrow = c(1, 3),
-  xpd = NA
+  xpd = NA # plot on margins
 )
 
 # first plot: cluster diagram

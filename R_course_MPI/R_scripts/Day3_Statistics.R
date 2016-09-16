@@ -191,6 +191,7 @@ lmer.input <- data.frame(
   Z = ENV$site
 )
 pH.lmer <- lme(Y ~ X.1 + X.2, data = lmer.input, random = ~ 1|Z)
+anova(pH.lmer)
 require(car)
 Anova(pH.lmer)
 # I hope I got this right:
