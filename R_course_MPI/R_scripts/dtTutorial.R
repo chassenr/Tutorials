@@ -1,18 +1,22 @@
+# information on melt and cast
+# seananderson.ca/2013/10/19/reshape.html
+
 library(data.table)  
 
-DF = data.frame(x=rep(c("a","b","c"),each=3), y=c(1,3,6), v=1:9)
+DF = data.frame(x=rep(c("a","b","c"),each=3), y=c(1,3,6), v=1:9, stringsAsFactors = F)
 DT = data.table(x=rep(c("a","b","c"),each=3), y=c(1,3,6), v=1:9)
 
 DF
 DT
 
 identical(dim(DT),dim(DF)) # TRUE
-identical(DF$a, DT$a)      # TRUE
+identical(DF$x, DT$x)      # TRUE
 is.list(DF)                # TRUE
 is.list(DT)                # TRUE
 
 is.data.frame(DT)          # TRUE
 
+# how many data.tables?
 tables()
 
 DT[2]                      # 2nd row
@@ -40,12 +44,13 @@ DT[,sum(v),by=key(DT)]     # same
 DT[,sum(v),by=y]           # ad hoc by
 
 DT["a",sum(v)]                    # j for one group
-DT[c("a","b"),sum(v),by=.EACHI]   # j for two groups
+DT[c("a","b"),sum(v),by=.EACHI]   # j for two groups, for each i specified before the first comma
 
 # The world of databasing! Joins etc..
 
 X = data.table(c("b","c"),foo=c(4,2))
 X
+setkey(X, V1)
 DT
 
 DT[X]                      # join
@@ -56,6 +61,7 @@ DT[X,sum(v)*foo,by=.EACHI] # join inherited scope
 
 setkey(DT,x,y)             # 2-column key
 setkeyv(DT,c("x","y"))     # same
+# similar to having 2 element in cast formula
 
 # Now think of selects like joins!
 
@@ -68,7 +74,7 @@ DT[.("a",3:6)]             # join 4 rows (2 missing)
 DT[.("a",3:6),nomatch=0]   # remove missing
 DT[.("a",3:6),roll=TRUE]   # rolling join (locf)
 
-DT[,sum(v),by=.(y%%2)]     # by expression, here modulo
+DT[,sum(v),by=.(y%%2)]     # by expression, here modulo (remainder)
 DT[,.SD[2],by=x]           # 2nd row of each group, .SD is a sort 
                            # sub-data.table
 
@@ -88,7 +94,7 @@ DT[,list(MySum=sum(v),
    by=.(x,y%%2)]        # by 2 expressions
 
 DT[,sum(v),x]
-DT[,sum(v),x][V1<20]       # compound query
+DT[,sum(v),x][V1<20]       # compound query (chain commands)
 DT[,sum(v),x][order(-V1)]  # ordering results
 
 
@@ -198,7 +204,7 @@ system.time(setkey(DT,x,y))  # one-off cost, usually
 
 # use our keys to do the search...
 ss <- system.time(ans2 <- DT[list("R","h")])   # binary search
-
+ss
 head(ans2,3)
 dim(ans2)
 identical(ans1$v, ans2$v)
