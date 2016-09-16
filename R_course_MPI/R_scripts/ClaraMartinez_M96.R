@@ -5,6 +5,7 @@
 
 setwd("C:/Users/User/Documents/githubRepos/Tutorials/trunk/R_course_MPI/Example_data")
 
+
 # load data
 M96 <- read.table(
   "Martinez-Perez_Supplementary_Table_1_forR_renamed.csv",
