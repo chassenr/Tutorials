@@ -1,0 +1,80 @@
+# to get wubi
+# download latest version here (on windows): ﻿https://github.com/hakuna-m/wubiuefi/releases
+# follow instructions (default)
+# if security warning pops up: cancel pyrun (don't allow) --> will still work :)
+
+# to install cutadapt, java, and git
+sudo apt install python-pip
+pip install cutadapt
+sudo apt-get update
+java -version
+sudo apt install default-jre
+sudo apt-get install git
+
+# directory for user-specific programs
+cd ~/Documents/Programs/
+
+# install trimmomatic
+cd ~/Documents/Programs/
+wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.36.zip
+unzip Trimmomatic-0.36.zip
+mv Trimmomatic-0.36.zip ~/Downloads/
+
+# install fastqc
+wget http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip
+unzip fastqc_v0.11.5.zip
+mv fastqc_v0.11.5.zip ~/Downloads/
+cd FastQC
+chmod +x fastqc
+
+# install bbmap
+# download from https://sourceforge.net/projects/bbmap/files/latest/download
+tar -xzvf BBMap_36.32.tar.gz
+mv BBMap_36.32.tar.gz ~/Downloads/
+
+# install PEAR
+wget http://sco.h-its.org/exelixis/web/software/pear/files/pear-0.9.10-bin-64.tar.gz
+tar -xzvf pear-0.9.10-bin-64.tar.gz
+mv pear-0.9.10-bin-64.tar.gz ~/Downloads/
+
+# install swarm
+git clone https://github.com/torognes/swarm.git
+cd swarm/src/
+make
+
+# install sina
+wget https://www.arb-silva.de/fileadmin/silva_databases/SINA/1.2.11/sina-1.2.11_ubuntu1204_amd64.tgz
+tar -xvzf sina-1.2.11_ubuntu1204_amd64.tgz
+mv sina-1.2.11_ubuntu1204_amd64.tgz ~/Downloads/
+
+cd ~/Documents/Databases
+wget https://www.arb-silva.de/fileadmin/silva_databases/current/ARB_files/SSURef_Nr99_123.1_SILVA_03_03_16_opt.arb.gz
+gunzip SSURef_Nr99_123.1_SILVA_03_03_16_opt.arb.gz
+mkdir Sina
+mv SSURef_Nr99_123.1_SILVA_03_03_16_opt.arb ./Sina/
+
+# install mothur
+wget https://github.com/mothur/mothur/releases/download/v1.38.1.1/Mothur.linux_64.zip
+unzip Mothur.linux_64.zip
+rm -rf __MACOSX
+mv Mothur.linux_64.zip ~/Downloads/
+
+cd ~/Documents/Databases
+wget http://www.mothur.org/w/images/1/15/Silva.seed_v123.tgz
+tar -xzvf Silva.seed_v123.tgz 
+mkdir Mothur
+mv README.* ./Mothur/
+mv silva.seed_v123.* ./Mothur/
+
+# install oligotyping
+sudo apt-get install python-tk
+sudo pip install oligotyping
+
+# install R
+sudo apt-get install r-base
+
+# download github repositories
+cd ~/Documents/Repos/
+git clone https://github.com/chassenr/Tutorials.git
+
+
