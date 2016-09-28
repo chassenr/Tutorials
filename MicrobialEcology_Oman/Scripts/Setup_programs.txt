@@ -76,5 +76,5 @@ sudo apt-get install r-base
 # download github repositories
 cd ~/Documents/Repos/
 git clone https://github.com/chassenr/Tutorials.git
-
+git clone https://github.com/chassenr/NGS.git
 
