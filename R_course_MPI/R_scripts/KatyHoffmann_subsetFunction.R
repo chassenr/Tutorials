@@ -4,6 +4,7 @@
 # i.e. not found in any of the other samples in the data set
 # as input a sample-by-OTU table (samples in rows) and a grouping variable (factor) are required
 # the function can also write the subsetted tables to file (one file for each condition)
+# this script is supposed to be called with source("KatyHoffmann_subsetFunction")
 
 EnvironmentSpecific <- function(input, # sample-by-OTU table (samples in rows)
                                 envData, # grouping factor
