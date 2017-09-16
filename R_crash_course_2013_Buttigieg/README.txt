@@ -1,0 +1,1 @@
+This directory contains R scripts developed by Pier Luigi Buttigieg for an R crash course in 2013 at the Max Planck Institute for Marine Microbiology in Bremen, Germany.
