@@ -186,9 +186,8 @@ for(i in 1:6) {
 
 ### plotting elements ####
 
-# we will be using some of the folling commands to add sepcific elements to a plot
+# we will be using some of the following commands to add sepcific elements to a plot
 
-# some trial and error
 # open new plot
 dev.off()
 par(mar = c(4, 4, 1, 1))
