@@ -82,7 +82,7 @@ par("xpd")
 par("mfrow")
 par("mfcol")
 
-# position of axis title, axis tick marks, axis ticks
+# position of axis title, axis tick marks, axis
 par("mgp")
 
 # plot titles?
@@ -190,8 +190,17 @@ for(i in 1:6) {
 
 # open new plot
 dev.off()
-par(mar = c(4, 4, 1, 1))
-plot.new()
+par(mar = c(4, 4, 1, 1), ann = F)
+# plot.new()
+
+plot(
+  0,
+  0,
+  type = "n",
+  ylim = c(-0.5, 1.5),
+  xlim = c(0, 1),
+  axes = F
+)
 
 # get plot dimensions in user coordinates
 par("usr")
