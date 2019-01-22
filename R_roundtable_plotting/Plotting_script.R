@@ -8,9 +8,11 @@
 # 5: scatter plot (PCA)
 # 6: barplot with error bars
 # 7: heatmap (correlations)
-# 8: bathymetric map 
-# 9: depth profiles 
-# 10: networks
+# 8: heatmap (percentages)
+# 9: bathymetric map 
+# 10: depth profiles 1
+# 11: depth profiles 2
+# 12: networks
 
 # packages
 require(scales)
