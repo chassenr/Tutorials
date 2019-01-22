@@ -28,7 +28,7 @@ require(TeachingDemos)
 
 # set working directory
 # change path to your copy of the R roundtable files
-setwd("D:/Zmt_home/Workshops/R_roundtables/Plot()-ing/")
+setwd("D:/Repos/chassenr/Tutorials/R_roundtable_plotting/")
 load("Plotting_tutorial.Rdata")
 # save.image("Plotting_tutorial.Rdata")
 
@@ -66,11 +66,46 @@ ENV.se <- cast(ENV.long, "SITE ~ variable", fun.aggregate = function(x) { sd(x)/
 
 ### plotting parameters ####
 
+# layout of plotting devices
+# figure area
+# plot area
+plot.new()
+box("plot")
+box("figure", col = "red")
+
 # margins
 par("mar")
+for(i in 1:4) {
+  mtext(
+    text = paste("line", 0:(floor(par("mar")[i]) - 1)), 
+    side = i, 
+    line = 0:(floor(par("mar")[i]) - 1)
+  )
+} 
 
 # outer margins
 par("oma")
+par(oma = c(4, 0, 4, 0))
+plot.new()
+box("plot")
+box("figure", col = "red")
+box("inner", col = "blue")
+box("outer", col = "green")
+for(i in 1:4) {
+  mtext(
+    text = paste("line", 0:(floor(par("mar")[i]) - 1)), 
+    side = i, 
+    line = 0:(floor(par("mar")[i]) - 1)
+  )
+} 
+for(i in c(1, 3)) {
+  mtext(
+    text = paste("line", 0:3), 
+    side = i, 
+    line = 0:3,
+    outer = T
+  )
+}
 
 # plotting area in user coordinates
 par("usr")
@@ -596,7 +631,7 @@ dev.off()
 ### barplot end ####
 
 
-### heatmap ####
+### heatmap (gplots) ####
 
 # we will plot a correlation heatmap,
 # however any matrix can be visualized as a heatmap
@@ -657,7 +692,131 @@ heat <- heatmap.2(
 )
 dev.off()
 
-### heatmap end ####
+### heatmap (gplots) end ####
+
+
+### heatmap (image) ####
+# if the heatmap.2 function is too rigid for more complicated figures,
+# you can also build your own heatmap from scratch using the image() function
+
+SPECIES <- read.table("example_data_heatmap.txt", h = T, sep = "\t", row.names = 1)
+META <- read.table("example_metadata_heatmap.txt", h = T, sep = "\t", stringsAsFactors = F, row.names = 1)
+META$Station <- factor(META$Station, levels = c("R1", "F1", "F2", "F3", "F4"))
+META$Tidal.phase <- as.factor(META$Tidal.phase)
+META$Pore.size <- as.factor(META$Pore.size)
+levels(META$Pore.size) <- c("FL", "PA")
+META.species <- read.table("example_species_metadata_heatmap.txt", h = T, sep = "\t", row.names = 1)
+
+# order observations for plot
+META <- META[order(META$Pore.size, META$sampling.unit, META$Tidal.phase), ]
+SPECIES <- SPECIES[, rownames(META)]
+all.equal(rownames(META), colnames(SPECIES))
+all.equal(rownames(SPECIES), rownames(META.species))
+
+# barplot and heatmap of potential pathogens
+# 2 panel figure
+layout(
+  matrix(c(1:6), nrow = 3, ncol = 2, byrow = T),
+  heights = c(1.2, 2, 0.8),
+  widths = c(4, 1)
+)
+par(
+  mar = c(1, 4, 1, 1),
+  xaxs = "i",
+  yaxs = "i"
+)
+# plot.new()
+# box("plot")
+barplot(
+  colSums(SPECIES),
+  names.arg = "",
+  ylab = "",
+  axes = F
+)
+axis(
+  2,
+  cex.axis = 0.7,
+  las = 2,
+  mgp = c(2, 0.5, 0.1),
+  tcl = -0.3
+)
+mtext(2, text = "Proportion of potential", line = 3, cex = 0.9)
+mtext(2, text = "pathogens [%]", line = 1.5, cex = 0.9)
+plot.new()
+par(
+  mar = c(0, 4, 0, 1),
+  xpd = NA
+)
+# plot.new()
+# box("plot")
+image(
+  x = 1:ncol(SPECIES),
+  y = 1:nrow(SPECIES),
+  z = sqrt(t(SPECIES)),
+  col = colorRampPalette(c("white", "darkred"))(30),
+  axes = F,
+  xlab = "",
+  ylab = ""
+)
+axis(
+  1,
+  at = 1:ncol(SPECIES),
+  labels = paste(META$Station, META$Tidal.phase, META$sampling.unit, META$Pore.size, sep = "_"),
+  cex.axis = 0.7,
+  las = 2,
+  mgp = c(2, 0.5, 0),
+  tcl = -0.3
+)
+axis(
+  4,
+  at = 1:nrow(SPECIES),
+  labels = rownames(SPECIES),
+  cex.axis = 1,
+  las = 1,
+  mgp = c(2, 0.5, 0),
+  tcl = -0.3
+)
+axis(
+  2,
+  at = 1:nrow(SPECIES),
+  labels = META.species$host,
+  cex.axis = 1,
+  las = 1,
+  mgp = c(2, 0.5, 0),
+  tcl = -0.3
+)
+box("plot")
+mtext(1, text = "Station-Tide-Event-Fraction", line = 5.5)
+plot.new()
+plot.new()
+par(
+  mar = c(4, 1, 2, 1),
+  xpd = NA, 
+  ann = F
+)
+image(
+  matrix(
+    seq(0, sqrt(max(SPECIES)), length.out = 30),
+    nrow = 30,
+    ncol = 1
+  ),
+  x = seq(0, sqrt(max(SPECIES)), length.out = 30),
+  y = 1,
+  axes = F,
+  col = colorRampPalette(c("white", "darkred"))(30)
+)
+box("plot", lwd = 0.5)
+axis(
+  1, 
+  at = sqrt(c(0, 1, 2, 5, 10)), 
+  labels = c(0, 1, 2, 5, 10),
+  mgp = c(1, 0.1, 0),
+  tcl = -0.1,
+  cex.axis = 0.7
+)
+title(xlab = "Sequence proportion [%]", cex.lab = 0.8, mgp = c(1, 0.1, 0))
+
+### heatmap (image) end ####
 
 
 ### bathymetric map ####
@@ -922,7 +1081,109 @@ dev.off()
 ### bathymetric map end ####
 
 
-### depth profiles ####
+### depth profile 1 ####
+
+
+manta.1m <- read.table("example_data_manta.txt", sep = "\t", h = T)
+manta.1m$time <- as.POSIXlt(paste(manta.1m$DATE, manta.1m$t.start), format = "%m.%d.%Y %H:%M:%S")
+
+pdf("Manta_plot.pdf", height = 10, width = 7)
+par(
+  mfrow = c(7, 1),
+  mar = c(0, 3, 3, 5),
+  oma = c(5, 2, 0, 0),
+  mgp = c(2, 0.7, 0),
+  xpd = NA,
+  lwd = 0.5
+)
+for(i in 3:9) {
+  # subset data set to parameter of interest
+  temp <- manta.1m[, c(12, 2, i)]
+  temp$Depth_1m <- -(as.numeric(temp$Depth_1m))
+  temp$time.num <- as.numeric(temp$time)
+  
+  # rearrange values
+  temp.cross <- db2cross(
+    temp,
+    col = "Depth_1m",
+    row = "time.num", 
+    val = colnames(temp)[3]
+  )
+  
+  # interpolation and plot
+  image2D(
+    y = temp.cross$y, 
+    x = temp.cross$x, 
+    z = temp.cross$z, 
+    resfac = 8, 
+    axes = F,
+    xlab = "",
+    ylab = "",
+    clab = colnames(temp)[3],
+    colkey = list(lwd = 0.5, adj.clab = 0, lwd.ticks = 0.5, mgp = c(2, 0.7, 0)),
+    xlim = as.numeric(c(min(manta.1m$time), max(manta.1m$time))),
+    lwd = 0.5
+  )
+  
+  # add x-axis (sampling times as labels only for last plot)
+  if(i == 9) {
+    axis.POSIXct(
+      1, 
+      at = seq(
+        min(as.Date(as.character(manta.1m$DATE), format = '%m.%d.%Y')), 
+        max(as.Date(as.character(manta.1m$DATE), format = '%m.%d.%Y')),
+        by = "1 day"
+      ),
+      format= "%m/%d",
+      las = 2,
+      lwd = 0.5
+    )
+  } else {
+    axis.POSIXct(
+      1, 
+      at = seq(
+        min(as.Date(as.character(manta.1m$DATE), format = '%m.%d.%Y')), 
+        max(as.Date(as.character(manta.1m$DATE), format = '%m.%d.%Y')),
+        by = "1 day"
+      ),
+      format= "%m/%d",
+      labels = "",
+      las = 2,
+      lwd = 0.5
+    )
+  }
+  
+  # add y-axis
+  axis(2, at = seq(-5, -20, -5), las = 1, lwd = 0.5)
+  
+  # add information about tidal phase (only first plot)
+  if(i == 3) {
+    text(
+      unique(manta.1m$time),
+      rep(0, 13),
+      labels = ifelse(unique(manta.1m[, c("time", "tide")])$tide == "incoming", "I", "O"),
+      pos = 3
+    )
+  }
+  
+  # add figure panel
+  text(
+    par("usr")[1] - (par("usr")[2]- par("usr")[1]) * 0.05,
+    par("usr")[4] + (par("usr")[4]- par("usr")[3]) * 0.05,
+    labels = paste("(", LETTERS[i-2], ")", sep = ""),
+    font = 2,
+    cex = 1.3
+  )
+}
+mtext(side = 1, line = 3.5, outer = T, text = "Date")
+mtext(side = 2, line = 0, outer = T, text = "Depth [m]")
+dev.off()
+
+
+### depth profile 1 end ####
+
+
+### depth profile 2 ####
 
 # we will create a 2D plot of depth profiles of Chla along a longitudinal transect
 # ordinary kriging will be used to fill in gaps in cruise track
@@ -1043,7 +1304,7 @@ title(xlab = "Longitude", ylab = "Depth")
 # close plotting device
 dev.off()
 
-### depth profiles end ####
+### depth profile 2 end ####
 
 
 ### networks ####
