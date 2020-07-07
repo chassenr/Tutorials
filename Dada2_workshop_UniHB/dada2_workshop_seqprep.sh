@@ -15,7 +15,7 @@ mkdir Logfiles
 
 ### Demultiplex using cutadapt version 2.1
 mkdir Demux
-sed '1d' Library12_mapping.txt | head -10 | while read line
+sed '1d' Library12_mapping.txt | head -5 | while read line
 do
   SID=$(echo "${line}" | cut -f1)
   BCD=$(echo "${line}" | cut -f2 | sed 's/^/\^/')
@@ -31,7 +31,7 @@ gunzip Demux/*.gz
 
 ### Primer clipping using cutadapt version 2.1
 mkdir Clipped
-sed '1d' Library12_mapping.txt | head -10 | while read line
+sed '1d' Library12_mapping.txt | head -5 | while read line
 do
   SID=$(echo "${line}" | cut -f1)
   FWD=$(echo "${line}" | cut -f3 | sed 's/^/\^/')
@@ -54,6 +54,9 @@ do
   # add all corrected seqs to the fwd-rev fastqs
   cat Clipped/${SID}"_clip_fr_R1.fastq" Clipped/${SID}"_rf2fr_R1.fastq" > ./Clipped/${SID}"_clip_R1.fastq"
   cat Clipped/${SID}"_clip_fr_R2.fastq" Clipped/${SID}"_rf2fr_R2.fastq" > ./Clipped/${SID}"_clip_R2.fastq"
+  
+  # remove re-oriented fastq files
+  rm Clipped/${SID}"_rf2fr_R2.fastq" Clipped/${SID}"_rf2fr_R1.fastq"
 
 done
 
