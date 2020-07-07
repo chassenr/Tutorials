@@ -40,8 +40,8 @@ names(filtFs) <- sample.names
 names(filtRs) <- sample.names
 
 # Considerations for trimming:
-# expected max length: 300
-# min overlap: 30
+# expected max length: 252bp (?)
+# min overlap: 30bp
 # reads should be truncated so that rev primer is not included at end of fwd reads
 # It is recommended to trim to just enough for the required length for sufficient overlap
 # Caution: don't remove too much
@@ -57,6 +57,8 @@ range_truncLen <- matrix(
   ncol = 2,
   byrow = T
 )
+# Based on the expected maximum fragment length, the trimming could be even stricter
+# Fell free to adjust the parameter ranges further
 
 # Define ranges for truncLen
 range_maxEE <- matrix(
@@ -141,7 +143,7 @@ dev.off()
 # The dada2 team is working on making some good recommendations for binned quality scores
 # For now, there are 2 options:
 #   1) run error learning with modified loess function (maybe more elegant)
-#   Hack the loessErrfun() of dada2 package (used in both learErrors and dada): 
+#   Hack the loessErrfun() of dada2 package (used in both learnErrors and dada): 
 #   mod.lo <- loess(rlogp ~ q, df, weights = log10(tot), span = 2)
 #   2) coerce any value lower than the Q40 probability to be the Q40 value in the learnErrors() output
 #   We will do this here to avoid re-running the error learning
@@ -175,6 +177,7 @@ mergers <- mergePairs(
 
 # Create sequence table
 seqtab <- makeSequenceTable(mergers)
+dim(seqtab)
 
 # This is the step at which separate denoising runs should be combined
 # (e.g. if data comes from different sequencer runs or lanes, 
@@ -182,7 +185,7 @@ seqtab <- makeSequenceTable(mergers)
 # See documentation for mergeSequenceTables (especially tryRC)
 
 # Remove chimeras
-# This should remove quite a bit of ASVs, but only a small fraction of your total sequences
+# This may remove quite a bit of ASVs, but only a small fraction of your total sequences
 seqtab.nochim <- removeBimeraDenovo(seqtab, method = "consensus", multithread = 20, verbose = TRUE)
 ncol(seqtab.nochim)/ncol(seqtab)
 summary(rowSums(seqtab.nochim)/rowSums(seqtab))
@@ -193,21 +196,27 @@ table(rep(nchar(colnames(seqtab.nochim)), colSums(seqtab.nochim)))
 
 # Check unusual sequence lengths
 uniquesToFasta(
-  seqtab.nochim[, sample(which(nchar(colnames(seqtab.nochim)) < 250 | nchar(colnames(seqtab.nochim)) > 300), 100)], 
+  # seqtab.nochim[, sample(which(nchar(colnames(seqtab.nochim)) < 250 | nchar(colnames(seqtab.nochim)) > 300), 100)], 
+  seqtab.nochim[, nchar(colnames(seqtab.nochim)) < 250 | nchar(colnames(seqtab.nochim)) > 252], 
   "check.fasta"
 )
+# Those have all very low similarity to known 16S
+# Optional: exclude (conservative approach) or keep (see what happens in taxonomic classification)
 
 # Remove potential junk sequences and singletons
 # dada does not generate singletons, any singletons are introduced in the merging step
 # Adjust range of sequence lengths based on expected length of marker gene fragment
-seqtab.nochim2 <- seqtab.nochim[, nchar(colnames(seqtab.nochim)) %in% 250:300 & colSums(seqtab.nochim) > 1]
+seqtab.nochim2 <- seqtab.nochim[, nchar(colnames(seqtab.nochim)) %in% 250:252 & colSums(seqtab.nochim) > 1]
 dim(seqtab.nochim2)
 ncol(seqtab.nochim2)/ncol(seqtab)
 summary(rowSums(seqtab.nochim2)/rowSums(seqtab))
 
-# Get nSeqs summary 
+# Get nSeqs summary
+nSeqs <- read.table("nSeqs_all.txt", h = T, stringsAsFactors = F)
+all.equal(nSeqs$SID, sample.names)
 getN <- function(x) sum(getUniques(x))
 track <- cbind(
+  nSeqs$Demux,
   filt.out,
   sapply(dadaFs, getN), 
   sapply(dadaRs, getN), 
@@ -215,12 +224,12 @@ track <- cbind(
   rowSums(seqtab.nochim), 
   rowSums(seqtab.nochim2)
 )
-colnames(track) <- c("Clipped", "Filtered", "Denoised_fwd", "Denoised_rev", "merged", "nochim", "tabled")
+colnames(track) <- c("Demux", "Clipped", "Filtered", "Denoised_fwd", "Denoised_rev", "merged", "nochim", "tabled")
 rownames(track) <- c(sample.names)
 track <- data.frame(track)
 
 # How many reads were lost at each analysis step?
-track.perc <- round(apply(track, 2, function(x) x/track$input) * 100, 2)
+track.perc <- data.frame(round(apply(track, 2, function(x) x/track$Demux) * 100, 2))
 
 # Taxonomic classification
 # Available options:
@@ -235,7 +244,7 @@ track.perc <- round(apply(track, 2, function(x) x/track$input) * 100, 2)
 # so that we can manually filter by bootstrap later
 tax <- assignTaxonomy(
   seqtab.nochim2, 
-  "/models-backup/tmm/DB/DADA2/silva_nr_v132_train_set.fa.gz",
+  "/media/16TB/chh/UniHB_dada2_workshop/silva_nr_v138_train_set.fa.gz",
   multithread = 20,
   minBoot = 0,
   outputBootstraps = T
@@ -245,8 +254,8 @@ tax <- assignTaxonomy(
 # Remove unwanted lineages
 tax.good <- lapply(tax, function(x) {
   x[tax$tax[, 1] %in% c("Archaea", "Bacteria") & 
-      !grepl("[Cc]hloroplast", tax.bac$tax[, 4]) &
-      !grepl("[Mm]itochondria", tax.bac$tax[, 5])
+      !grepl("[Cc]hloroplast", tax$tax[, 4]) &
+      !grepl("[Mm]itochondria", tax$tax[, 5])
     , ] 
 })
 
@@ -265,6 +274,10 @@ for(i in 1:ncol(tax.filt70)) {
   print(sum(rowSums(otu.filt70[, is.na(tax.filt70[, i])]))/sum(colSums(otu.filt70)))
 }
 
+# Update track
+track$Classified <- rowSums(otu.filt70)
+track.perc$Classified <- round(track$Classified/track$Demux * 100, 2)
+
 # Write output
 write.table(track, "nSeq_dada2.txt", quote = F, sep = "\t")
 otu.70.print <- t(otu.filt70)
@@ -280,7 +293,7 @@ write.table(tax.70.print, "tax_tab_70.txt", quote = F, sep = "\t")
 # Further curation of taxonomic paths (optional)
 # append unclassified to last classified level instead of NA
 TAX <- read.table(
-  "tax_tab_70_pool.txt",
+  "tax_tab_70.txt",
   h = T,
   sep = "\t",
   stringsAsFactors = F
