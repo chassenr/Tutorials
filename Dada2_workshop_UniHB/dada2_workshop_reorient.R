@@ -30,7 +30,7 @@ source("../dada2_quality_check.R")
 quality_check(
   fnFs,
   fnRs,
-  file_base = "QualityProfile"
+  file_base = "QualityProfile_reorient"
 )
 
 # Place filtered files in Filtered/ subdirectory
@@ -58,9 +58,9 @@ range_truncLen <- matrix(
   byrow = T
 )
 # Based on the expected maximum fragment length, the trimming could be even stricter
-# Fell free to adjust the parameter ranges further
+# Feel free to adjust the parameter ranges further
 
-# Define ranges for truncLen
+# Define ranges for maxEE
 range_maxEE <- matrix(
   c(1, 1,
     1, 2,

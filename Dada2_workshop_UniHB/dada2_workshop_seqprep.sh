@@ -11,6 +11,7 @@ mkdir Logfiles
 # CAUTION: It is not recommended to combine the output from several sequencer runs. Some argue, lanes should also be processed independently.
 # If different sequencing batches of the same project are processed independently, they can be combined into one sample-by-asv table after merging (Before Chimera detection).
 # This also applies to the separate processing of reads in the wrong orientation.
+# CAUTION: If in a split run, the second run/lane only has a small number of sequences, it may be better to not denoise separately, as a certain sequencing depth is required for denoising.
 
 
 ### Demultiplex using cutadapt version 2.1
