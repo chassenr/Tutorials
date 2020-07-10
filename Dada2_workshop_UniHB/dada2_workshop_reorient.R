@@ -14,7 +14,7 @@ packageVersion("dada2")
 # 1.16.0
 
 # save and load workspace
-setwd("/home/chh/Documents/Projects/UniHB_MOeP_dada2_workshop/Library_052020")
+setwd("/media/16TB/chh/UniHB_dada2_workshop/Library_052020")
 # save.image("dada2_reorient.Rdata")
 
 # specify path to input fastq files
@@ -26,7 +26,7 @@ sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
 # optional: use mixedsort of package gtools to get full alphanumeric sort
 
 # quality check
-source("../dada2_quality_check.R")
+source("../../Repos/Tutorials/Dada2_workshop_UniHB/dada2_quality_check.R")
 quality_check(
   fnFs,
   fnRs,
@@ -49,11 +49,9 @@ names(filtRs) <- sample.names
 # Define ranges for truncLen
 range_truncLen <- matrix(
   c(170, 170,
-    175, 165,
     180, 160,
-    185, 155,
     190, 150),
-  nrow = 5,
+  nrow = 3,
   ncol = 2,
   byrow = T
 )
@@ -66,36 +64,36 @@ range_maxEE <- matrix(
     1, 2,
     2, 2,
     2, 3,
-    3, 3,
-    3, 4,
-    4, 4),
-  nrow = 7,
+    3, 3),
+  nrow = 5,
   ncol = 2,
   byrow = T
 )
 
 # Run parameter optimization
 # This is quite time consuming and should only be attempted on a server with as many cores as you have samples (or at least 20)
-source("../dada2_screen_settings.R")
+source("../../Repos/Tutorials/Dada2_workshop_UniHB/dada2_screen_settings.R")
 screen_filt_settings <- screen_settings(
   sample.names, 
   fnFs, 
   fnRs, 
   range_maxEE, 
   range_truncLen, 
-  cpus = 10
+  cpus = 5
 )
 
 # This is just a gut feeling, but I would optimize for the following criteria:
 #   small difference between 10 and 90 percentile of retained reads
 #   high total proportion of retained reads
 #   most stringent maxEE that does not result in severe loss of reads
+pdf("Parameter_screening.pdf", width = 7, height = 7)
 plot(
   screen_filt_settings[, "prop.total"],
   screen_filt_settings[, "q90"] - screen_filt_settings[, "q10"],
   col = rep(rainbow(nrow(range_maxEE)), nrow(range_truncLen)),
   pch = 16
 )
+dev.off()
 
 # Run trimming with optimal parameters
 filt.out <- filterAndTrim(
@@ -110,14 +108,14 @@ filt.out <- filterAndTrim(
   truncQ = 0, 
   rm.phix = TRUE,
   compress = F,
-  multithread = 4
+  multithread = 5
 )
 
 # Repeat quality check after trimming
 quality_check(
   filtFs,
   filtRs,
-  file_base = "QualityProfileFiltered"
+  file_base = "QualityProfileFiltered_reorient"
 )
 
 # Learn error rates
@@ -125,16 +123,19 @@ quality_check(
 # It is possible that with 10 rounds (MAX_CONSIST), the algorithm for learning the errors won't converge
 # Increasing MAX_CONSIST will lead to longer run times, and may only marginally improve error estimation
 # I would not recommend setting MAX_CONSIST higher than 15
-errF <- learnErrors(filtFs, multithread = 20, randomize = TRUE, verbose = 1, MAX_CONSIST = 10)
-errR <- learnErrors(filtRs, multithread = 20, randomize = TRUE, verbose = 1, MAX_CONSIST = 10)
+errF <- learnErrors(filtFs, multithread = 16, randomize = TRUE, verbose = 1, MAX_CONSIST = 10)
+errR <- learnErrors(filtRs, multithread = 16, randomize = TRUE, verbose = 1, MAX_CONSIST = 10)
+# testing the hacked loess function
+err2F <- learnErrors(filtFs, errorEstimationFunction = loessErrfun2, multithread = 16, randomize = TRUE, verbose = 1, MAX_CONSIST = 10)
+err2R <- learnErrors(filtRs, errorEstimationFunction = loessErrfun2, multithread = 16, randomize = TRUE, verbose = 1, MAX_CONSIST = 10)
 # it is a good idea to save your workspace here
 
 # check convergence of error estimation and plot error profiles
 pdf("ErrorProfiles.pdf")
-barplot(log10(dada2:::checkConvergence(errF) + 1), main = "Convergence_fwd")
-barplot(log10(dada2:::checkConvergence(errR) + 1), main = "Convergence_rev")
-plotErrors(errF, nominalQ = TRUE)
-plotErrors(errR, nominalQ = TRUE)
+barplot(log10(dada2:::checkConvergence(err2F) + 1), main = "Convergence_fwd")
+barplot(log10(dada2:::checkConvergence(err2R) + 1), main = "Convergence_rev")
+plotErrors(err2F, nominalQ = TRUE)
+plotErrors(err2R, nominalQ = TRUE)
 dev.off()
 
 # correct error estimates because of binned quality scores?

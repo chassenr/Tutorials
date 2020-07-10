@@ -1,5 +1,5 @@
 # set working directory
-WDIR="/home/chh/Documents/Projects/UniHB_MOeP_dada2_workshop/Library_052020"
+WDIR="/media/16TB/chh/UniHB_dada2_workshop/Library_052020"
 
 # prepare files
 cd $WDIR
