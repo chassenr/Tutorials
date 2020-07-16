@@ -162,8 +162,8 @@ dev.off()
 # For large data set (e.g. full HiSeq lane), I strongly recommend pool = "pseudo"
 # I would not use pool = FALSE as this will strongly impact (i.e. lower) your alpha diversity,
 # which seems to be rather an artifact of the change in parameters than any true signal
-dadaFs <- dada(filtFs, err = errF_mod, multithread = 20, pool = TRUE)
-dadaRs <- dada(filtRs, err = errR_mod, multithread = 20, pool = TRUE)
+dadaFs <- dada(filtFs, err = err2F, multithread = 20, pool = TRUE)
+dadaRs <- dada(filtRs, err = err2R, multithread = 20, pool = TRUE)
 # it is a good idea to save your workspace here
 
 # Merge reads
@@ -207,7 +207,7 @@ uniquesToFasta(
 # Remove potential junk sequences and singletons
 # dada does not generate singletons, any singletons are introduced in the merging step
 # Adjust range of sequence lengths based on expected length of marker gene fragment
-seqtab.nochim2 <- seqtab.nochim[, nchar(colnames(seqtab.nochim)) %in% 250:252 & colSums(seqtab.nochim) > 1]
+seqtab.nochim2 <- seqtab.nochim[, nchar(colnames(seqtab.nochim)) %in% 250:269 & colSums(seqtab.nochim) > 1]
 dim(seqtab.nochim2)
 ncol(seqtab.nochim2)/ncol(seqtab)
 summary(rowSums(seqtab.nochim2)/rowSums(seqtab))
