@@ -36,7 +36,7 @@ pairs(ENV[, c(5:10, 13, 14)])
 # Only select environmental parameters from reference sites
 ENV[ENV$seep.category == "reference", ]
 
-# How many OTUs are affiliated with Chloroflexi?
+# How many OTUs are affiliated with the phylum Chloroflexi?
 
 # Are there genera involved in sulfur cycling?
 # typically containing "sulf" or "thio" in their genus names
@@ -73,7 +73,7 @@ require(reshape)
 ENV.melt <- melt(ENV) # long format
 ENV.mean <- cast(ENV.melt, "site + seep.category ~ variable", fun.aggregate = mean, na.rm = T)
 
-# Calculate summary statitics and combine tables:
+# Calculate summary statistics and combine tables:
 #   Calculate number of sequences and OTUs per sample and store values in a data.frame
 #   Calculate median values for environmental parameters
 #   Combine sequencing and environmental information into 1 data.frame
@@ -96,7 +96,10 @@ for(i in c(5:10, 13, 14)) { # curly brackets are used to define what is done for
 env.params <- colnames(ENV)[c(5:10, 13, 14)] 
 # Why am I storing the names of the variables that I want to look at in a separate vector
 
-ENV.glm <- vector("list", length = length(env.params))
+ENV.glm <- vector(
+  mode = "list", # type of vector
+  length = length(env.params) # length of list, i.e. how many different taxonomic levels
+)
 names(ENV.glm) <- env.params
 for(i in 1:length(env.params)) {
   ENV.glm[[i]] <- aov(ENV[, env.params[i]] ~ ENV$seep.category) 
@@ -109,10 +112,7 @@ lapply(ENV.glm, summary)
 # generate sample-by-taxon tables for each taxonomic level
 
 # create an empty list
-TAX.pooled <- vector(
-  mode = "list", # type of vector
-  length = 5 # length of list, i.e. how many different taxonomic levels
-)
+TAX.pooled <- vector(mode = "list", length = 5)
 names(TAX.pooled) <- colnames(TAX)[2:6] # phylum to genus
 
 # fill elements of list with data frames with taxon abundance, 
