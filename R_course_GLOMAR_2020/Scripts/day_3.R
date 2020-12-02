@@ -13,6 +13,7 @@ box("figure", col = "red")
 
 # margins
 par("mar")
+# par(mar = c(10, 3, 3, 1))
 for(i in 1:4) {
   mtext(
     text = paste("line", 0:(floor(par("mar")[i]) - 1)), 
@@ -61,7 +62,7 @@ par("mgp")
 # plot titles?
 par("ann")
 
-# extra spacing ad beginning of axes?
+# extra spacing at beginning of axes?
 par("xaxs")
 par("yaxs")
 
@@ -74,7 +75,7 @@ par("yaxs")
 # close all plotting devices
 dev.off()
 
-# lets's have a look at a tyipcal plotting area of a simple 2 panel figure
+# lets's have a look at a typical plotting area of a simple 2 panel figure
 par(
   mfrow = c(1, 2),
   oma = c(4, 0, 4, 0)
@@ -128,8 +129,8 @@ layout(
     c(1, 1, 1,
       2, 2, 3,
       4, 5, 6),
-    3,
-    3,
+    nrow = 3,
+    ncol = 3,
     byrow = T
   ), 
   widths = c(1, 1, 0.5),
@@ -187,7 +188,7 @@ text(
   x = seq(0, 1, 0.1), 
   y = seq(0, 1, 0.1),
   labels = LETTERS[1:11],
-  pos = c(rep(3, 5), rep(1, 6)) # position of label relativ to xy
+  pos = c(rep(3, 5), rep(1, 6)) # position of label relative to xy
 )
 text(
   0.5, # x
@@ -203,6 +204,12 @@ lines(
   lty = 3, # line type dashed
   lwd = 3 # line width
 )
+lines(
+  x = seq(0, 1, length.out = 10), 
+  y = rep(c(0.1, 0.3), 5),
+  lty = 1, # line type solid
+  lwd = 1 # line width
+)
 
 # line connectors between 2 points, requires start and end x and y coordinates
 segments(
@@ -214,13 +221,14 @@ segments(
 
 # rectangular box, requires x and y coordinates of lower left and upper right hand corner
 rect(
-  0.3,
-  0.75,
-  0.7,
-  0.85,
+  xleft = 0.3,
+  ybottom = 0.75,
+  xright = 0.7,
+  ytop = 0.85,
   border = "red",
   lty = 2,
-  lwd = 2
+  lwd = 2,
+  col = "yellow"
 )
 
 # connect individual data points (in the order of input) to form a polygon (fill optional),
@@ -247,12 +255,12 @@ box("plot", lwd = 0.5)
 # add axis to plot
 # specify which side of plot to add axis
 axis(
-  2,
+  side = 2,
   mgp = c(2, 0.7, 0),
   las = 1 # always horizontal
 )
 axis(
-  1, 
+  side = 1, 
   mgp = c(2, 0.7, 0), 
   at = c(0.2, 0.5, 0.8), 
   labels = c("small", "medium", "large")
@@ -274,6 +282,20 @@ abline(a = 0.2, b = 0.5) # intercept and slope
 abline(h = 0.5)
 abline(v = 0.85)
 
+# extract coefficients from linear model
+x <- seq(0, 1, 0.1)
+y <- rnorm(11, mean = 0.5)
+mod <- lm(y ~ x)
+abline(mod, col = "red")
+points(x, y, pch = 16, col = "red")
+mod$coefficients
+text(
+  par("usr")[1], 
+  par("usr")[4] - (par("usr")[4] - par("usr")[3]) * 0.05,
+  pos = 4,
+  labels = paste0("y = ", round(mod$coefficients[2], 2), " x + ", round(mod$coefficients[1], 2))
+)
+
 #####
 
 require(vegan)
@@ -284,6 +306,7 @@ require(raster)
 require(marmap)
 require(TeachingDemos)
 require(maps)
+require(reshape)
 
 
 ### PCA (scatter plot) ####
@@ -433,6 +456,7 @@ dev.off()
 # getting data into shape
 ENV.mean <- cast(ENV.melt, "seep.category ~ variable", mean, na.rm = T)
 ENV.sd <- cast(ENV.melt, "seep.category ~ variable", sd, na.rm = T)
+env.params <- c("pH", "SiO4", "PO4", "NH4", "NO3", "NO2")
 env.labels <- c(
   "pH",
   expression('SiO'[4]^"4-"*" [µM]"),
@@ -448,7 +472,7 @@ pdf("Line_plot.pdf", width = 7, height = 7)
 par(
   mfcol = c(ceiling(length(env.params)/2), 2),
   mar = c(0.5, 3, 0.5, 0.5),
-  oma = c(3, 0.5, 0, 0),
+  oma = c(3, 0.5, 0.5, 0),
   xpd = NA
 )
 
@@ -462,6 +486,7 @@ for(i in env.params) {
     axes = F, # don't plot axes
     xlim = c(1, length(levels(ENV$seep.category))),
     ylim = c(min(ENV.mean[, i] - ENV.sd[, i]), max(ENV.mean[, i] + ENV.sd[, i])),
+    # ylim = c(0, max(ENV.mean[, env.params] + ENV.sd[, env.params])),
     mgp = c(2, 0.5, 0),
     ylab = env.labels[i],
     xlab = ""
@@ -494,11 +519,27 @@ for(i in env.params) {
   # add axes
   axis(2, mgp = c(2, 0.5, 0), tcl = -0.3, las = 1, cex.axis = 0.7)
   if(i %in% env.params[c(ceiling(length(env.params)/2), length(env.params))]) {
-    axis(1, at = 1:length(levels(ENV$seep.category)), labels = levels(ENV$seep.category), mgp = c(2, 0.5, 0), tcl = -0.3, las = 1, cex.axis = 1)
+    axis(
+      side = 1,
+      at = 1:length(levels(ENV$seep.category)), 
+      labels = levels(ENV$seep.category),
+      mgp = c(2, 0.5, 0), 
+      tcl = -0.3, 
+      las = 1, 
+      cex.axis = 1
+    )
   } else {
     axis(1, at = 1:length(levels(ENV$seep.category)), labels = NA, mgp = c(2, 0.5, 0), tcl = -0.3)
   }
   
+  # add plot index
+  text(
+    par("usr")[1] - (par("usr")[2] - par("usr")[1]) * 0.08,
+    par("usr")[4] + (par("usr")[4] - par("usr")[3]) * 0.02,
+    labels = LETTERS[which(env.params == i)],
+    cex = 2,
+    font = 2
+  )
 }
 
 # add title for x axis
